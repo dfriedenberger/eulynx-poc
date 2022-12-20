@@ -1,0 +1,46 @@
+'copied form aws
+
+!define LAYOUT_TOP_DOWN top to bottom direction
+!define LAYOUT_LEFT_RIGHT left to right direction
+
+!define TECHN_FONT_SIZE 12
+
+!definelong Entity_tech(e_alias, e_label, e_techn, e_color, e_sprite, e_stereo)
+rectangle "==e_label\n<color:e_color><$e_sprite></color>\n//<size:TECHN_FONT_SIZE>[e_techn]</size>//" <<e_stereo>> as e_alias
+!enddefinelong
+
+!definelong Entity(e_alias, e_label, e_techn, e_color, e_sprite, e_stereo)
+rectangle "==e_label\n<color:e_color><$e_sprite></color>\n" <<e_stereo>> as e_alias
+!enddefinelong
+
+!definelong EntityInterface(e_alias, e_label, e_techn, e_color, e_sprite, e_stereo)
+interface "==e_label" <<e_stereo>> as e_alias
+!enddefinelong
+
+sprite $cog [48x48/16z] {
+tTH9biCm20JGmiAZ9BZ_QNlk49lKizRvoqHpWV5-gl-f627-81XGOdp1W2N6pnYmnVWD0uuOVu1IEnJVLd-oufiUfhZexjvNKVCJcsNv-GjdgzzOqvjpEOlT
+R-qf8YQ7rtn0YxVqCriBK5RpCoN7EI8vSg1YQNYQO0L1QlmEX5YdIgwo7CpAAY-McbxrWY7nF-JNmV6sgm2YI6oq1_bzEMdvFJEM5qFhWUFrzgTEoEBqwHef
+Mj8lUyJI5O7repx7c0ubjBr9lQr-SIsJhlnxnSVpx-6KpiCSvBxCHjwJcM_o8k4jj1vUPs62GJNAzFry0W
+}
+
+
+sprite $email [48x48/16z] {
+xTG55iCm30DGbTc-_sttA7fpU8pQoZ-9YtXz_catBMPjGQur4JROj2ghyrgPSzzBJihWUs1EymK8FRezhlSEKG-CCJu14Ryr0D2iXfhznhCVUzuoS5phMQSv
+xmNWULaV7W_RqyV7PtsX3yzlSqjbefxzSfo2PzqyZwYtMNYU9S_p7aJhFFDh_k-l_HwsKiEbWKkpLlJUuFNvvmG
+}
+
+sprite $wrench [48x48/16z] {
+xT9L4WCn609WrkFS_xJrhZEJklBC5_tnl3J6X-1CZQnKF2UP8WSOzabj3kWun5uAt8L7OdVf3YL4wlKTl7p8PWNe3Im543U89DkrVi1go1xCVattUs0uYkpt
+fpNCwVV0CACVUZ2hHpK48bRzbqW3TQ3rn49jS26mbm9_8IZ2muzKXmi1AdCWmJH909NoDy4VU5m64Yu3BIu27N0147K1H5q0KPSWf0xFoHO
+}
+
+!define Subsystem(e_alias, e_label, e_techn) Entity(e_alias, e_label, e_techn, #D86613, cog, Subsystem)
+!define Interface(e_alias, e_label, e_techn) EntityInterface(e_alias, e_label, e_techn, #D86613,cog,Interface)
+
+
+!define Message(e_alias, e_label, e_techn) Entity(e_alias, e_label, e_techn, #D86613, email, Message)
+
+!define Process(e_alias, e_label, e_techn) Entity(e_alias, e_label, e_techn, #D86613, cog, Process)
+
+!define Property(e_alias, e_label, e_techn) Entity(e_alias, e_label, e_techn, #D86613, wrench, Property)
+
