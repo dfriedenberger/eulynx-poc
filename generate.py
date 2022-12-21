@@ -61,6 +61,14 @@ asset_templates = {
     "docker-compose.yml" : {
         "filename" : "docker-compose.yml",
         "template_path" : "template/docker/docker-compose.yml"
+    },
+    "handler.py" : {
+        "filename" : "app.py",
+        "template_path" : "template/python/handler.py"
+    },
+    "caller.py" : {
+        "filename" : "app.py",
+        "template_path" : "template/python/caller.py"
     }
 }
 
@@ -73,6 +81,10 @@ for subsystem in wrapper.get_instances_of_type(MBA.Subsystem):
     path = create_project(name)
     create_asset("Dockerfile",path)
     create_asset("requirements.txt",path)
+    if name == "Server":
+        create_asset("handler.py",path)
+    if name == "Client":
+        create_asset("caller.py",path)
 
     for interface in wrapper.get_out_references(subsystem,MBA.has):
         interface_name = wrapper.get_single_object_property(interface,MBA.name)
