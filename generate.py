@@ -17,13 +17,26 @@ def parse_args():
 
     return args.model
 
-# helper
-def gen_id(o):
-    return hashlib.md5(str(o).encode('utf-8')).hexdigest()
-
+# Helper
 def to_path(o):
     return o.lower().replace(' ','-')
 
+def create_project(name):
+    #TODO create project 
+    project_path = f"tmp/{to_path(name)}"
+    print(f"Implement Project {name} in path {project_path}")
+    if not os.path.exists(project_path):
+        os.mkdir(project_path)
+    return project_path
+
+def create_asset(asset,project_path):
+    #TODO create asset 
+    asset_template = asset_templates[asset]
+    src_file = asset_template['template_path']
+    dst_file = os.path.join(project_path,asset_template['filename'])
+    print(f"Create Asset {asset} in path {project_path}")
+    shutil.copyfile(src_file,dst_file)
+    return dst_file
 
 model = parse_args();
 
@@ -34,43 +47,44 @@ issues = {}
 
 wrapper = SparQLWrapper(graph)
 
-for subsystem in wrapper.get_instances_of_type(MBA.Subsystem):
-    # use implemented Docker-File / DockerCompose-file
-    # generate Konfiguration
-    depends = []
-    for interface in wrapper.get_out_references(subsystem,MBA.has):
-        name = wrapper.get_single_object_property(interface,MBA.name)
-        # use implemented java/python libraries 
-        # generate message classes 
-        issue = {
-            "id" : gen_id(interface),
-            "type" : "Story",
-            "title" : f"Create Library and Configuration for Interface {interface}",
-            "project" : name,
-            "assets" : [],
 
-        }
-        depends.append(issue['id'])
-        issues[issue['id']] = issue
 
-    # Issue for SubSystem
-    name = wrapper.get_single_object_property(subsystem,MBA.name)
-    issue = {
-        "id" : gen_id(subsystem),
-        "type" : "Story",
-        "title" : f"Create Project for Subsystem {subsystem}",
-        "project" : name,      
-        "assets" : ["Dockerfile"],
-        "depends" : depends
+asset_templates = {
+    "Dockerfile" : {
+        "filename" : "Dockerfile",
+        "template_path" : "template/python/Dockerfile"
+    },
+    "requirements.txt" : {
+        "filename" : "requirements.txt",
+        "template_path" : "template/python/requirements.txt"
+    },
+    "docker-compose.yml" : {
+        "filename" : "docker-compose.yml",
+        "template_path" : "template/docker/docker-compose.yml"
     }
-    issues[issue['id']] = issue
+}
 
-# generate ReadMe for the whole Projekt
+for interface in wrapper.get_instances_of_type(MBA.Interface):
+    name = wrapper.get_single_object_property(interface,MBA.name)
+    path = create_project(name)
 
-output_file = os.path.splitext(model)[0]+".issueJson"
-with open(output_file, 'w') as f:
-    json.dump(issues,f, indent=4)
+for subsystem in wrapper.get_instances_of_type(MBA.Subsystem):
+    name = wrapper.get_single_object_property(subsystem,MBA.name)
+    path = create_project(name)
+    create_asset("Dockerfile",path)
+    create_asset("requirements.txt",path)
 
+    for interface in wrapper.get_out_references(subsystem,MBA.has):
+        interface_name = wrapper.get_single_object_property(interface,MBA.name)
+        # generate messages in target language , import tech. Library
+        
+
+#global      
+path = create_project("base")
+create_asset("docker-compose.yml",path)
+ 
+
+ 
 
 
 # Implementation
@@ -91,23 +105,14 @@ class Implementation:
             for dependId in issue['depends']:
                 self._implement_issue(dependId)
 
-        #TODO create project 
-        print("Implement Project",issue['project'])
-        project_path = f"tmp/{to_path(issue['project'])}"
-        if not os.path.exists(project_path):
-            os.mkdir(project_path)
+      
 
         for asset in issue['assets']:
             # Implement
             if asset not in self.asset_templates:
                 raise Exception(f"Generator for {asset} not implemented")
             
-            #TODO create asset 
-            print("Create Asset",asset)
-            asset_template = self.asset_templates[asset]
-            src_file = asset_template['template_path']
-            dst_file = os.path.join(project_path,asset_template['filename'])
-            shutil.copyfile(src_file,dst_file)
+          
 
 
         self.implemented.add(issueId)
@@ -116,12 +121,7 @@ class Implementation:
         for issueId in self.issues.keys():
             self._implement_issue(issueId)
 
-asset_templates = {
-    "Dockerfile" : {
-        "filename" : "Dockerfile",
-        "template_path" : "template/python/Dockerfile"
-    }
-}
+
 Implementation(issues,asset_templates).implement()
   
        

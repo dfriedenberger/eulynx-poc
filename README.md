@@ -15,14 +15,18 @@ python enrichment.py
 ```
 
 
-## Create Issues and Implement these
+## Generate Code
 ```
 python generate.py --model eulynx-rich.ttl
 ```
 
+## Run
+```
+docker-compose -f base/docker-compose.yml up
+```
 
 
-## Visualisation
+## Visualization
 
 https://www.ldf.fi/service/rdf-grapher
 
