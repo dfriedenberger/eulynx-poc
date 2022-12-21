@@ -1,8 +1,12 @@
 import socket
 import argparse
 
-def handle_request(request):
-    response = "Pong"
+from pingrequest import PingRequest
+from pongresponse import PongResponse
+
+def handle_request(request : PingRequest) -> PongResponse:
+    response = PongResponse()
+    response.set_message(request.msg)
     return response
 
 
@@ -36,10 +40,11 @@ while True:
     conn, address = server_socket.accept()  # accept new connection
     print("Connection from: " + str(address))
     # receive data stream. it won't accept data packet greater than 1024 bytes
-    request = conn.recv(1024).decode()
-    print("from connected user: " + str(request))
-    response = handle_request(request)
-    print("to connected user: " + str(response))
+    request = conn.recv(1024)
+    ping = PingRequest.decode(request)
+    print("from connected user: " + str(ping))
+    pong = handle_request(ping)
+    print("to connected user: " + str(pong))
 
-    conn.send(response.encode())  # send data to the client
+    conn.send(pong.encode())  # send data to the client
     conn.close()  # close the connection

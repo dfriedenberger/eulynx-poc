@@ -69,7 +69,15 @@ asset_templates = {
     "caller.py" : {
         "filename" : "app.py",
         "template_path" : "template/python/caller.py"
-    }
+    },
+    "pingrequest.py" : {
+        "filename" : "pingrequest.py",
+        "template_path" : "template/python/pingrequest.py"
+    },  
+    "pongresponse.py" : {
+        "filename" : "pongresponse.py",
+        "template_path" : "template/python/pongresponse.py"
+    } 
 }
 
 for interface in wrapper.get_instances_of_type(MBA.Interface):
@@ -81,6 +89,9 @@ for subsystem in wrapper.get_instances_of_type(MBA.Subsystem):
     path = create_project(name)
     create_asset("Dockerfile",path)
     create_asset("requirements.txt",path)
+    create_asset("pingrequest.py",path)
+    create_asset("pongresponse.py",path)
+
     if name == "Server":
         create_asset("handler.py",path)
     if name == "Client":

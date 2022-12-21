@@ -2,6 +2,9 @@ import time
 import socket 
 import argparse
 
+from pingrequest import PingRequest
+from pongresponse import PongResponse
+
 def parse_args():
     # Parse command line arguments
     parser = argparse.ArgumentParser(description='Script for transform model to code.')
@@ -19,19 +22,21 @@ def parse_args():
 host, port = parse_args()
 
 
-def call(message):
+def call():
     try:
-        print("Send to server:",message)
+        ping = PingRequest()
+        ping.set_message("Hello")
+        print("Send to server:",ping)
        
         client_socket = socket.socket()  # instantiate
         print('Connect to',host,port)  # show in terminal
 
         client_socket.connect((host, port))  # connect to the server
 
-        client_socket.send(message.encode())  # send message
-        data = client_socket.recv(1024).decode()  # receive response
-
-        print('Received from server: ' + data)  # show in terminal
+        client_socket.send(ping.encode())  # send message
+        data = client_socket.recv(1024)  # receive response
+        pong = PongResponse.decode(data)
+        print('Received from server: ' + str(pong))  # show in terminal
 
         client_socket.close()  # close the connection
     except ConnectionRefusedError as e:
@@ -41,5 +46,5 @@ def call(message):
 
 
 while True:
-    call("Ping")
+    call()
     time.sleep(10)
