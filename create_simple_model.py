@@ -14,8 +14,8 @@ rdf_client = wrapper.add_named_instance(MBA.Subsystem,"Client")
 
 # Interface
 rdf_i = wrapper.add_named_instance(MBA.Interface,"Echo")
-wrapper.add_reference(MBA.has,rdf_server,rdf_i)
-wrapper.add_reference(MBA.has,rdf_client,rdf_i)
+wrapper.add_reference(MBA.provides,rdf_server,rdf_i)
+wrapper.add_reference(MBA.requires,rdf_client,rdf_i)
 
 
 #Message

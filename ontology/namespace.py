@@ -22,6 +22,11 @@ class MBA(DefinedNamespace):
     # http://www.w3.org/1999/02/22-rdf-syntax-ns#Property
     name: URIRef #All Objects have names
    
+
     # relations
     has: URIRef
+
+    ## interface relations
+    provides: URIRef
+    requires: URIRef
    

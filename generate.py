@@ -80,10 +80,6 @@ asset_templates = {
     } 
 }
 
-for interface in wrapper.get_instances_of_type(MBA.Interface):
-    name = wrapper.get_single_object_property(interface,MBA.name)
-    path = create_project(name)
-
 for subsystem in wrapper.get_instances_of_type(MBA.Subsystem):
     name = wrapper.get_single_object_property(subsystem,MBA.name)
     path = create_project(name)
@@ -92,15 +88,24 @@ for subsystem in wrapper.get_instances_of_type(MBA.Subsystem):
     create_asset("pingrequest.py",path)
     create_asset("pongresponse.py",path)
 
-    if name == "Server":
+    for provide_interface in wrapper.get_out_references(subsystem,MBA.provides):
+        interface_name = wrapper.get_single_object_property(provide_interface,MBA.name)
         create_asset("handler.py",path)
-    if name == "Client":
-        create_asset("caller.py",path)
-
-    for interface in wrapper.get_out_references(subsystem,MBA.has):
-        interface_name = wrapper.get_single_object_property(interface,MBA.name)
-        # generate messages in target language , import tech. Library
         
+        # generate messages in target language , import tech. Library
+        for message in wrapper.get_out_references(provide_interface,MBA.has):
+            message_name = wrapper.get_single_object_property(message,MBA.name)
+            print("Message",message_name)
+        
+    for require_interface in wrapper.get_out_references(subsystem,MBA.requires):
+        interface_name = wrapper.get_single_object_property(require_interface,MBA.name)
+        create_asset("caller.py",path)
+        
+        # generate messages in target language , import tech. Library
+        for message in wrapper.get_out_references(require_interface,MBA.has):
+            message_name = wrapper.get_single_object_property(message,MBA.name)
+            print("Message",message_name)
+
 
 #global      
 path = create_project("base")
