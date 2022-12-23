@@ -1,6 +1,7 @@
 from rdflib import Graph
 from ontology.sparql_queries import SparQLWrapper
 from ontology.namespace import MBA
+from generators.messagegenerator import MessageGenerator
 import argparse
 import hashlib
 import os
@@ -38,6 +39,26 @@ def create_asset(asset,project_path):
     shutil.copyfile(src_file,dst_file)
     return dst_file
 
+
+def create_message_asset(wrapper,message,project_path):
+    message_name = wrapper.get_single_object_property(message,MBA.name)
+    print("Message",message_name)
+    message_generator = MessageGenerator(message_name)
+
+    for telegramm_structure in wrapper.get_out_references(message,MBA.structure):
+        print("struct",telegramm_structure)
+        for property in wrapper.get_sequence(telegramm_structure):
+            property_name = wrapper.get_single_object_property(property,MBA.name)
+            datatype = wrapper.get_single_object_property(property,MBA.datatype)
+            message_generator.add_property(property_name,datatype)
+
+    dst_file = os.path.join(project_path,f"{message_name}.py")
+    with open(dst_file, 'w') as f:
+        f.write(message_generator.gen())
+
+
+
+
 model = parse_args();
 
 graph = Graph()
@@ -70,13 +91,13 @@ asset_templates = {
         "filename" : "app.py",
         "template_path" : "template/python/caller.py"
     },
-    "pingrequest.py" : {
-        "filename" : "pingrequest.py",
-        "template_path" : "template/python/pingrequest.py"
+    "encode.py" : {
+        "filename" : "encode.py",
+        "template_path" : "template/python/encode.py"
     },  
-    "pongresponse.py" : {
-        "filename" : "pongresponse.py",
-        "template_path" : "template/python/pongresponse.py"
+    "decode.py" : {
+        "filename" : "decode.py",
+        "template_path" : "template/python/decode.py"
     } 
 }
 
@@ -85,71 +106,30 @@ for subsystem in wrapper.get_instances_of_type(MBA.Subsystem):
     path = create_project(name)
     create_asset("Dockerfile",path)
     create_asset("requirements.txt",path)
-    create_asset("pingrequest.py",path)
-    create_asset("pongresponse.py",path)
+
+    # Lib / Helper
+    create_asset("encode.py",path)
+    create_asset("decode.py",path)
+
 
     for provide_interface in wrapper.get_out_references(subsystem,MBA.provides):
         interface_name = wrapper.get_single_object_property(provide_interface,MBA.name)
         create_asset("handler.py",path)
-        
+
         # generate messages in target language , import tech. Library
         for message in wrapper.get_out_references(provide_interface,MBA.has):
+            create_message_asset(wrapper,message,path)
             message_name = wrapper.get_single_object_property(message,MBA.name)
-            print("Message",message_name)
         
     for require_interface in wrapper.get_out_references(subsystem,MBA.requires):
         interface_name = wrapper.get_single_object_property(require_interface,MBA.name)
         create_asset("caller.py",path)
-        
+       
         # generate messages in target language , import tech. Library
         for message in wrapper.get_out_references(require_interface,MBA.has):
-            message_name = wrapper.get_single_object_property(message,MBA.name)
-            print("Message",message_name)
+            create_message_asset(wrapper,message,path)
 
 
 #global      
 path = create_project("base")
 create_asset("docker-compose.yml",path)
- 
-
- 
-
-
-# Implementation
-class Implementation:
-    def __init__(self,issues,asset_templates):
-        self.issues = issues
-        self.implemented = set()
-        self.asset_templates = asset_templates
-
-    def _implement_issue(self,issueId):
-
-        if issueId in self.implemented:
-            return
-
-        # Depends
-        issue = issues[issueId]
-        if 'depends' in issue:
-            for dependId in issue['depends']:
-                self._implement_issue(dependId)
-
-      
-
-        for asset in issue['assets']:
-            # Implement
-            if asset not in self.asset_templates:
-                raise Exception(f"Generator for {asset} not implemented")
-            
-          
-
-
-        self.implemented.add(issueId)
-
-    def implement(self):
-        for issueId in self.issues.keys():
-            self._implement_issue(issueId)
-
-
-Implementation(issues,asset_templates).implement()
-  
-       

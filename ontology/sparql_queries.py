@@ -108,3 +108,15 @@ class SparQLWrapper:
 
         n = [r['o'] for r in self.graph.query(q,initBindings = {'s' : obj })]
         return n
+
+    def get_sequence(self,obj):
+        q = """
+            SELECT ?o ?ix
+            WHERE {
+                ?s ?ix ?o .
+                ?o a ?t .
+            }
+            """
+        n = [r['o'] for r in sorted(self.graph.query(q,initBindings = {'s' : obj }),key = lambda x : int(x['ix'][44:]))]
+        return n
+            

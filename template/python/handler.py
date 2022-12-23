@@ -1,12 +1,16 @@
 import socket
 import argparse
 
-from pingrequest import PingRequest
-from pongresponse import PongResponse
+from Ping import Ping
+from Pong import Pong
+from encode import encode
+from decode import decode
 
-def handle_request(request : PingRequest) -> PongResponse:
-    response = PongResponse()
-    response.set_message(request.msg)
+def handle_request(request : Ping) -> Pong:
+    response = Pong()
+    response.telegramType = 0x02
+    response.messageLength = len(request.message)
+    response.message = request.message
     return response
 
 
@@ -41,10 +45,10 @@ while True:
     print("Connection from: " + str(address))
     # receive data stream. it won't accept data packet greater than 1024 bytes
     request = conn.recv(1024)
-    ping = PingRequest.decode(request)
-    print("from connected user: " + str(ping))
+    ping = decode(request)
+    print("from connected user: " + ping.message)
     pong = handle_request(ping)
-    print("to connected user: " + str(pong))
+    print("to connected user: " + pong.message)
 
-    conn.send(pong.encode())  # send data to the client
+    conn.send(encode(pong))  # send data to the client
     conn.close()  # close the connection
