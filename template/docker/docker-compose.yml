@@ -2,6 +2,7 @@ version: "3.9"
 services:
   server:
     build: server
-  client:
+  client1:
     build: client
-    
+  client2:
+    build: client
