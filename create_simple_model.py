@@ -41,5 +41,41 @@ rdf_msg_res = wrapper.add_named_instance(MBA.Message,"Pong")
 wrapper.add_reference(MBA.structure,rdf_msg_res,rdf_pingpong_telegram)
 wrapper.add_reference(MBA.has,rdf_i,rdf_msg_res)
 
+# State Machines
+## Server
+rdf_state_init = wrapper.add_named_instance(MBA.State,"Init")
+rdf_state_idle = wrapper.add_named_instance(MBA.State,"Idle")
+rdf_state_accepted = wrapper.add_named_instance(MBA.State,"Accepted")
+wrapper.add_str_property(MBA.init,rdf_state_init,"true")
+
+rdf_state_machine = wrapper.add_named_instance(MBA.StateMachine,"Server")
+wrapper.add_reference(MBA.has,rdf_state_machine,rdf_state_init)
+wrapper.add_reference(MBA.has,rdf_state_machine,rdf_state_idle)
+wrapper.add_reference(MBA.has,rdf_state_machine,rdf_state_accepted)
+
+rdf_transition_initialize = wrapper.add_named_instance(MBA.Transition,"Initialize")
+wrapper.add_reference(MBA.source,rdf_transition_initialize,rdf_state_init)
+wrapper.add_reference(MBA.target,rdf_transition_initialize,rdf_state_idle)
+wrapper.add_str_property(MBA.guard,rdf_transition_initialize,"true")
+
+rdf_transition_accept = wrapper.add_named_instance(MBA.Transition,"Accept")
+wrapper.add_reference(MBA.source,rdf_transition_accept,rdf_state_idle)
+wrapper.add_reference(MBA.target,rdf_transition_accept,rdf_state_accepted)
+wrapper.add_str_property(MBA.guard,rdf_transition_accept,"true")
+
+
+
+rdf_transition_nop = wrapper.add_named_instance(MBA.Transition,"Timeout")
+wrapper.add_reference(MBA.source,rdf_transition_nop,rdf_state_accepted)
+wrapper.add_reference(MBA.target,rdf_transition_nop,rdf_state_idle)
+wrapper.add_str_property(MBA.guard,rdf_transition_nop,"has timeout")
+
+rdf_transition_handle_connection = wrapper.add_named_instance(MBA.Transition,"handle Connection")
+wrapper.add_reference(MBA.source,rdf_transition_handle_connection,rdf_state_accepted)
+wrapper.add_reference(MBA.target,rdf_transition_handle_connection,rdf_state_idle)
+wrapper.add_str_property(MBA.guard,rdf_transition_handle_connection,"has connection")
+
+wrapper.add_reference(MBA.has,rdf_server,rdf_state_machine)
+
 
 graph.serialize(destination=f"simple.ttl",format='turtle')

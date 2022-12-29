@@ -35,11 +35,22 @@ class PumlModel:
         self.nodes.append(group,puml_obj)
         self.cache.add(id)
 
-    def create_relation(self,node1,node2):
+    def create_relation(self,node1,node2,name = " "):
         id1 = create_unique_id(node1)
         id2 = create_unique_id(node2)
-        puml_rel = f'Rel_D({id1}, {id2}," ")'
+        puml_rel = f'Rel_D({id1}, {id2},"{name}")'
         self.relations.append(puml_rel)
+
+    # state machines
+    def create_state(self,state):
+        self.puml.append(f"state {state}")
+
+    def create_transition(self,source_state,target_state,description):
+        self.puml.append(f"{source_state} --> {target_state} : {description}")
+
+    def create_initial_state(self,state):
+        self.puml.append(f"[*] --> {state}")
+
 
     def finish(self):
 

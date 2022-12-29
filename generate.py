@@ -1,11 +1,12 @@
-from rdflib import Graph
+from rdflib import Graph, RDF
+
 from ontology.sparql_queries import SparQLWrapper
 from ontology.namespace import MBA
 from generators.messagegenerator import MessageGenerator
+from generators.statemachinegenerator import StateMachineGenerator
+
 import argparse
-import hashlib
 import os
-import json
 import shutil
 
 def parse_args():
@@ -56,8 +57,18 @@ def create_message_asset(wrapper,message,project_path):
     with open(dst_file, 'w') as f:
         f.write(message_generator.gen())
 
-
-
+def create_state_machine_asset(wrapper,state_machine,project_path):
+    state_machine_name = wrapper.get_single_object_property(state_machine,MBA.name)
+    print("StateMachine",state_machine_name)
+    state_machine_generator = StateMachineGenerator(state_machine_name)
+    for state in wrapper.get_out_references(state_machine,MBA.has):
+        print("state",state)
+        state_name = wrapper.get_single_object_property(state,MBA.name)
+        state_machine_generator.add_state(state_name)
+    
+    dst_file = os.path.join(project_path,f"{state_machine_name}.py")
+    with open(dst_file, 'w') as f:
+        f.write(state_machine_generator.gen())
 
 model = parse_args();
 
@@ -112,6 +123,13 @@ for subsystem in wrapper.get_instances_of_type(MBA.Subsystem):
     create_asset("decode.py",path)
 
 
+    for reference in wrapper.get_out_references(subsystem,MBA.has):
+        type = wrapper.get_single_object_property(reference,RDF.type)
+        if type == MBA.StateMachine:
+            create_state_machine_asset(wrapper,reference,path)
+        else:
+            raise ValueError(f"Unknown type {type}")
+
     for provide_interface in wrapper.get_out_references(subsystem,MBA.provides):
         interface_name = wrapper.get_single_object_property(provide_interface,MBA.name)
         create_asset("handler.py",path)
@@ -119,8 +137,9 @@ for subsystem in wrapper.get_instances_of_type(MBA.Subsystem):
         # generate messages in target language , import tech. Library
         for message in wrapper.get_out_references(provide_interface,MBA.has):
             create_message_asset(wrapper,message,path)
-            message_name = wrapper.get_single_object_property(message,MBA.name)
+          
         
+       
     for require_interface in wrapper.get_out_references(subsystem,MBA.requires):
         interface_name = wrapper.get_single_object_property(require_interface,MBA.name)
         create_asset("caller.py",path)
@@ -128,6 +147,9 @@ for subsystem in wrapper.get_instances_of_type(MBA.Subsystem):
         # generate messages in target language , import tech. Library
         for message in wrapper.get_out_references(require_interface,MBA.has):
             create_message_asset(wrapper,message,path)
+
+
+
 
 
 #global      

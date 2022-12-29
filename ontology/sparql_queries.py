@@ -1,4 +1,6 @@
 import string
+from rdflib import Literal
+
 class SparQLWrapper:
 
     def __init__(self,graph):
@@ -82,7 +84,9 @@ class SparQLWrapper:
 
         n = [r['value'] for r in self.graph.query(q,initBindings = {'s' : obj })]
         if(len(n) != 1): raise ValueError(f"Not a single result {str(n)} for {obj}")
-        return n[0].value
+        if isinstance(n[0],Literal):
+            return n[0].value
+        return n[0]
 
     
     def get_in_references(self,obj,prop):
