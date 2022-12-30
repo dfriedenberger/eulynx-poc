@@ -22,6 +22,7 @@ python generate.py --model eulynx-rich.ttl
 
 ## Run
 ```
+docker-compose -f base/docker-compose.yml build
 docker-compose -f base/docker-compose.yml up
 ```
 

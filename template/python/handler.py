@@ -3,6 +3,7 @@ import argparse
 import threading
 import queue
 import os
+import time
 
 from Ping import Ping
 from Pong import Pong
@@ -11,6 +12,9 @@ from decode import decode
 
 from statemachine.statemachine import StateMachine
 from statemachine.state import State
+from ServerStateMachine import ServerStateMachine
+from ConnectionStateMachine import ConnectionStateMachine
+
 
 def handle_request(request : Ping) -> Pong:
     response = Pong()
@@ -37,13 +41,8 @@ def parse_args():
 host, port = parse_args()
 
 
+class Connection(ConnectionStateMachine):
 
-class Client:
-
-    state_init = State("Init")
-    state_idle = State("Idle")
-    state_handle_recv_data = State("HandleRecvData")
-    state_closed = State("Closed")
 
     def __init__(self,connection):
         self.error = None
@@ -51,30 +50,36 @@ class Client:
         self.send_data = queue.Queue()
         self.recv_data = queue.Queue()
 
-    # Conditions
-    def always_true(self):
-        return True
-
-    def has_send_data(self):
-        return self.send_data.qsize() > 0
-
-    def has_recv_data(self):
-        return self.recv_data.qsize() > 0
-
-    def has_error(self):
+	# Conditions/Guards
+    def is_error(self):
         return self.error != None
 
-    #Transitions
-    def nop(self):
-        pass
+    def is_recv_data(self):
+        return self.recv_data.qsize() > 0
 
-    def init(self):
+    def is_true(self):
+        return True
+
+    def is_no_error_and_no_send_data(self):
+        return not self.is_error() and not self.is_send_data() 
+
+    def is_send_data(self):
+        return self.send_data.qsize() > 0
+
+    def is_timeout(self):
+        return self.recv_data.empty()
+
+	# Transitions
+    def close(self):
+        self.connection.close()  # close the connection
+
+    def handle_callback(self):
+        ping = self.recv_data.get()
+        pong = handle_request(ping)
+        self.send_data.put(pong)
+
+    def initialize(self):
         self.connection.settimeout(0.2) 
-
-    def send(self):
-        pong = self.send_data.get()
-        print("to connected user: " + pong.message)
-        self.connection.send(encode(pong))  # send data to the client
 
     def recv(self):
         try:
@@ -92,60 +97,45 @@ class Client:
             print("from connected user: " + ping.message)
             self.recv_data.put(ping)
 
-    def handle_callback(self):
-        ping = self.recv_data.get()
-        pong = handle_request(ping)
-        self.send_data.put(pong)
+    def send(self):
+        pong = self.send_data.get()
+        print("to connected user: " + pong.message)
+        self.connection.send(encode(pong))  # send data to the client
 
-    def close(self):
-        self.connection.close()  # close the connection
-
-    def run(self):
-        sm = StateMachine(self.state_init, {
-
-            self.state_init : [
-                (self.always_true , self.init, self.state_idle)
-            ],
-            self.state_idle      : [
-                (self.has_error , self.close, self.state_closed),
-                (self.has_send_data , self.send, self.state_idle),
-                (self.always_true , self.recv, self.state_handle_recv_data)
-            ],
-            self.state_handle_recv_data : [
-                (self.has_recv_data , self.handle_callback, self.state_idle),
-                (self.always_true , self.nop, self.state_idle)
-            ]
-
-        })
-
-        while sm.nextState() != self.state_closed:
-            pass
+    def timeout(self):
+        pass
         
-class Server:
+class Server(ServerStateMachine):
 
-    state_init = State("Init")
-    state_wait_conn = State("WaitforConnection")
-    state_handle_conn = State("HandleConnection")
-    
     def __init__(self,host,port):
         self.host = host
         self.port = port
         self.server_socket = None
         self.connection_queue = queue.Queue()
 
-
-    # Conditions
-    def always_true(self):
+	# Conditions/Guards
+    def is_true(self):
         return True
 
-    def has_timeout(self):
+    def is_timeout(self):
         return self.connection_queue.empty()
 
-    #Transitions
-    def nop(self):
-        pass
+    def is_new_connection(self):
+        return self.connection_queue.qsize() > 0
 
-    def init(self):
+	# Transitions
+    def accept(self):
+        try:
+            conn, address = self.server_socket.accept()  # accept new connection
+        except socket.timeout:
+            pass
+        except:
+            raise
+        else:
+            print("Connection from: " + str(address))
+            self.connection_queue.put(conn)
+
+    def initialize(self):
         self.server_socket = socket.socket()  # get instance
 
         # look closely. The bind() function takes tuple as argument
@@ -158,42 +148,13 @@ class Server:
         # configure how many client the server can listen simultaneously
         self.server_socket.listen(2)
 
-    def accept(self):
-        try:
-            conn, address = self.server_socket.accept()  # accept new connection
-        except socket.timeout:
-            pass
-        except:
-            raise
-        else:
-            print("Connection from: " + str(address))
-            self.connection_queue.put(conn)
-            
-    def start_client(self):
+    def timeout(self):
+        pass
+
+    def handle_connection(self):
         connection = self.connection_queue.get()
-        client = Client(connection)
+        client = Connection(connection)
         threading.Thread(target=client.run).start()
-        
-        
-
-    def run(self):
-        sm = StateMachine(self.state_init, {
-
-            self.state_init      : [
-                (self.always_true , self.init, self.state_wait_conn)
-            ],
-            self.state_wait_conn: [
-                (self.always_true, self.accept , self.state_handle_conn)
-            ],
-            self.state_handle_conn : [
-                (self.has_timeout , self.nop, self.state_wait_conn),
-                (self.always_true , self.start_client, self.state_wait_conn)
-            ]
-
-        })
-
-        while True:
-            sm.nextState()
 
 
 server = Server(host,port)

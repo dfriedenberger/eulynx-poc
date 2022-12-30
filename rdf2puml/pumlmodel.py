@@ -51,6 +51,9 @@ class PumlModel:
     def create_initial_state(self,state):
         self.puml.append(f"[*] --> {state}")
 
+    def create_final_state(self,state):
+        self.puml.append(f"{state} --> [*]")
+
 
     def finish(self):
 

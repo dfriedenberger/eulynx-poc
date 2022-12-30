@@ -46,6 +46,9 @@ def statemachines2puml(graph : Graph) -> List[PumlModel]:
             init_properties = wrapper.get_object_properties(state,MBA.init)
             if len(init_properties) > 0:
                 puml.create_initial_state(name)
+            final_properties = wrapper.get_object_properties(state,MBA.final)
+            if len(final_properties) > 0:
+                puml.create_final_state(name)
 
 
         for transition in wrapper.get_instances_of_type(MBA.Transition): 
@@ -55,7 +58,7 @@ def statemachines2puml(graph : Graph) -> List[PumlModel]:
             guards = wrapper.get_object_properties(transition,MBA.guard)
             guard = " and ".join(guards)
 
-            #Todo Check if states belongs to statemachine
+            # Check if states belongs to statemachine
             if source_state in state_machine_states or target_state in state_machine_states:
                 source_state_name = get_name(wrapper,source_state)
                 target_state_name = get_name(wrapper,target_state)

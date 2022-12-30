@@ -43,7 +43,8 @@ class MBA(DefinedNamespace):
     ## statemachine properties
     guard: URIRef
     init: URIRef
-    
+    final: URIRef
+
     ## statemachine relations
     source: URIRef
     target: URIRef

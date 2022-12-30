@@ -8,6 +8,7 @@ from generators.statemachinegenerator import StateMachineGenerator
 import argparse
 import os
 import shutil
+from distutils.dir_util import copy_tree
 
 def parse_args():
     # Parse command line arguments
@@ -38,8 +39,14 @@ def create_asset(asset,project_path):
     dst_file = os.path.join(project_path,asset_template['filename'])
     print(f"Create Asset {asset} in path {project_path}")
     shutil.copyfile(src_file,dst_file)
-    return dst_file
 
+def create_folder_asset(asset,project_path):
+    #TODO create asset 
+    asset_template = asset_templates[asset]
+    src_folder = asset_template['template_path']
+    dst_folder = os.path.join(project_path,asset_template['foldername'])
+    print(f"Create Asset {asset} in path {project_path}")
+    copy_tree(src_folder,dst_folder)
 
 def create_message_asset(wrapper,message,project_path):
     message_name = wrapper.get_single_object_property(message,MBA.name)
@@ -58,14 +65,40 @@ def create_message_asset(wrapper,message,project_path):
         f.write(message_generator.gen())
 
 def create_state_machine_asset(wrapper,state_machine,project_path):
-    state_machine_name = wrapper.get_single_object_property(state_machine,MBA.name)
+    state_machine_name = wrapper.get_single_object_property(state_machine,MBA.name)+"StateMachine"
+
     print("StateMachine",state_machine_name)
+
+    # TODO code duplicate to rdf2puml
     state_machine_generator = StateMachineGenerator(state_machine_name)
+    state_machine_states = set()
+
     for state in wrapper.get_out_references(state_machine,MBA.has):
-        print("state",state)
+        state_machine_states.add(state)
         state_name = wrapper.get_single_object_property(state,MBA.name)
         state_machine_generator.add_state(state_name)
-    
+        init_properties = wrapper.get_object_properties(state,MBA.init)
+        if len(init_properties) > 0:
+            state_machine_generator.set_initial_state(state_name)
+        final_properties = wrapper.get_object_properties(state,MBA.final)
+        if len(final_properties) > 0:
+            state_machine_generator.add_final_state(state_name)
+
+    for transition in wrapper.get_instances_of_type(MBA.Transition): 
+        transition_name = wrapper.get_single_object_property(transition,MBA.name)
+        source_state = wrapper.get_out_references(transition,MBA.source)[0]
+        target_state = wrapper.get_out_references(transition,MBA.target)[0]
+        guards = wrapper.get_object_properties(transition,MBA.guard)
+        guard = " and ".join(guards)
+
+        # Check if states belongs to state machine
+        if source_state in state_machine_states or target_state in state_machine_states:
+            source_state_name = wrapper.get_single_object_property(source_state,MBA.name)
+            target_state_name = wrapper.get_single_object_property(target_state,MBA.name)
+            state_machine_generator.add_transition(transition_name,source_state_name,target_state_name,guard)
+
+
+
     dst_file = os.path.join(project_path,f"{state_machine_name}.py")
     with open(dst_file, 'w') as f:
         f.write(state_machine_generator.gen())
@@ -109,7 +142,11 @@ asset_templates = {
     "decode.py" : {
         "filename" : "decode.py",
         "template_path" : "template/python/decode.py"
-    } 
+    },
+    "statemachine" : {
+        "foldername" : "statemachine",
+        "template_path" : "template/python/statemachine"
+    }
 }
 
 for subsystem in wrapper.get_instances_of_type(MBA.Subsystem):
@@ -122,13 +159,15 @@ for subsystem in wrapper.get_instances_of_type(MBA.Subsystem):
     create_asset("encode.py",path)
     create_asset("decode.py",path)
 
-
     for reference in wrapper.get_out_references(subsystem,MBA.has):
         type = wrapper.get_single_object_property(reference,RDF.type)
         if type == MBA.StateMachine:
             create_state_machine_asset(wrapper,reference,path)
+            create_folder_asset("statemachine",path)
         else:
             raise ValueError(f"Unknown type {type}")
+
+
 
     for provide_interface in wrapper.get_out_references(subsystem,MBA.provides):
         interface_name = wrapper.get_single_object_property(provide_interface,MBA.name)

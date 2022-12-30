@@ -4,6 +4,7 @@ import argparse
 import threading
 import queue
 import os
+import uuid
 
 from Ping import Ping
 from encode import encode
@@ -11,6 +12,7 @@ from decode import decode
 
 from statemachine.statemachine import StateMachine
 from statemachine.state import State
+from ClientStateMachine import ClientStateMachine
 
 def parse_args():
     # Parse command line arguments
@@ -30,13 +32,7 @@ host, port = parse_args()
 
 
 
-class Client:
-
-    state_init = State("Init")
-    state_idle = State("Idle")
-    state_connected = State("Connected")
-    state_handle_recv_data = State("HandleRecvData")
-    state_closed = State("Closed")
+class Client(ClientStateMachine):
 
     def __init__(self,host,port):
         self.error = None
@@ -45,52 +41,53 @@ class Client:
         self.socket = None
         self.send_data = queue.Queue()
         self.recv_data = queue.Queue()
+        self.uuid = str(uuid.uuid4())
 
     def send_ping(self):
         ping = Ping()
         ping.telegramType = 0x01
-        ping.messageLength = len("Hello")
-        ping.message = "Hello"
+        ping.message = f"Hello id={self.uuid}"
+        ping.messageLength = len(ping.message)
         self.send_data.put(ping)
 
-    # Conditions
-    def always_true(self):
-        return True
-
-    def has_send_data(self):
-        return self.send_data.qsize() > 0
-
-    def has_recv_data(self):
-        return self.recv_data.qsize() > 0
-
-    def has_error(self):
+	# Conditions/Guards
+    def is_error(self):
         return self.error != None
 
-    #Transitions
-    def nop(self):
-        pass
-        
-    def wait(self):
-        time.sleep(3)
+    def is_true(self):
+        return True
 
+    def is_no_error_and_no_send_data(self):
+        return not self.is_error() and not self.is_send_data()
+
+    def is_send_data(self):
+        return self.send_data.qsize() > 0
+
+    def is_timeout(self):
+        return self.recv_data.empty()
+
+    def is_recv_data(self):
+        return self.recv_data.qsize() > 0
+
+	# Transitions
+    def close(self):
+        self.socket.close()  # close the connection
+        self.error = None
 
     def connect(self):
         try:
             self.socket.connect((self.host, self.port))
         except socket.timeout:
             self.error = "Connect timeout"
+        except socket.error as e:
+            print(e)
+            self.error = str(e)
         except:
             raise
-       
 
-    def init(self):
+    def initialize(self):
         self.socket = socket.socket()
         self.socket.settimeout(0.2) 
-
-    def send(self):
-        pong = self.send_data.get()
-        print("to connected user: " + pong.message)
-        self.socket.send(encode(pong))  # send data to the client
 
     def recv(self):
         try:
@@ -108,47 +105,30 @@ class Client:
             print("from connected user: " + ping.message)
             self.recv_data.put(ping)
 
+    def send(self):
+        pong = self.send_data.get()
+        print("to connected user: " + pong.message)
+        self.socket.send(encode(pong))  # send data to the client
+
+    def timeout(self):
+        pass
+
+    def wait(self):
+        time.sleep(3)
+
     def handle_callback(self):
         ping = self.recv_data.get()
         print("recv response",ping)
 
-    def close(self):
-        self.socket.close()  # close the connection
-        self.error = None
 
-    def run(self):
 
-        sm = StateMachine(self.state_init, {
-
-            self.state_init      : [
-                (self.always_true , self.init, self.state_idle)
-            ],
-            self.state_idle: [
-                (self.always_true, self.connect , self.state_connected)
-            ],
-            self.state_connected : [
-                (self.has_error , self.close, self.state_closed),
-                (self.has_send_data , self.send, self.state_connected),
-                (self.always_true , self.recv, self.state_handle_recv_data)
-            ],
-            self.state_handle_recv_data : [
-                (self.has_recv_data , self.handle_callback, self.state_connected),
-                (self.always_true , self.nop, self.state_connected)
-            ],
-            self.state_closed: [
-                (self.always_true , self.wait, self.state_init)
-            ]
-
-        })
-
-        while True:
-            sm.nextState()
 
 
 client = Client(host,port)
 threading.Thread(target=client.run).start()
 
 
+# send cyclic ping
 def ping():
     while True:
         client.send_ping()

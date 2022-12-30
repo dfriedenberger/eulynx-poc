@@ -6,3 +6,5 @@ services:
     build: client
   client2:
     build: client
+  client3:
+    build: client
