@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+  <!-- Basic Page Needs
+  –––––––––––––––––––––––––––––––––––––––––––––––––– -->
+  <meta charset="utf-8">
+  <title>Your page title here :)</title>
+  <meta name="description" content="">
+  <meta name="author" content="">
+
+  <!-- Mobile Specific Metas
+  –––––––––––––––––––––––––––––––––––––––––––––––––– -->
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <!-- FONT
+  –––––––––––––––––––––––––––––––––––––––––––––––––– -->
+  <link href="//fonts.googleapis.com/css?family=Raleway:400,300,600" rel="stylesheet" type="text/css">
+
+  <!-- CSS
+  –––––––––––––––––––––––––––––––––––––––––––––––––– -->
+  <link rel="stylesheet" href="css/normalize.css">
+  <link rel="stylesheet" href="css/skeleton.css">
+
+  <!-- Favicon
+  –––––––––––––––––––––––––––––––––––––––––––––––––– -->
+  <link rel="icon" type="image/png" href="images/favicon.png">
+
+</head>
+<body>
+
+  <!-- Primary Page Layout
+  –––––––––––––––––––––––––––––––––––––––––––––––––– -->
+  <div class="container">
+    <div class="row">
+      <div class="one-half column" style="margin-top: 25%">
+        <h4>SUMO</h4>
+        <p> Various commands can be sent to SUMO here. </p
+
+      </div>
+    </div>
+
+
+    <!-- The above form looks like this -->
+    <form id="newtrain" action="/api/v1/train" method="POST">
+        <input class="button-primary" type="submit" value="New Train">
+    </form>
+
+  </div>
+  <script src="/js/jquery-3.6.3.min.js"></script> 
+  <script type="text/javascript"> 
+    $( document ).ready(function() {
+        $( "#newtrain" ).submit(function( ev ) {
+            ev.preventDefault();
+
+            $.ajax({
+                type: $( "#newtrain" ).attr("method"),
+                url: $( "#newtrain" ).attr("action"),
+                data: JSON.stringify({}),
+                contentType: "application/json; charset=utf-8",
+                dataType: "json",
+                success: function(data){
+                    console.log(data);
+                },
+                error: function(errMsg) {
+                    alert(errMsg);
+                }
+            });
+
+
+        });
+    });
+  </script>
+  
+<!-- End Document
+  –––––––––––––––––––––––––––––––––––––––––––––––––– -->
+</body>
+</html>

@@ -1,7 +1,9 @@
 from rdflib import Graph, RDF, URIRef
 from ontology.graphwrapper import GraphWrapper
 from ontology.namespace import MBA
+from ontology.sparql_queries import SparQLWrapper
 
+import yaml
 
 
 def create_server_state_machine():
@@ -201,3 +203,116 @@ wrapper.add_reference(MBA.has,rdf_client,rdf_client_state_machine)
 
 
 graph.serialize(destination=f"simple.ttl",format='turtle')
+
+
+# Enrichment
+with open("aspects.yaml", "r") as f:
+    try:
+        print(yaml.safe_load(f))
+    except yaml.YAMLError as exc:
+        print(exc)
+
+
+sparQLWrapper = SparQLWrapper(graph)
+
+## Add Projects, add dependencies, UML Package structure, Komponenten-Diagramm
+
+## if 'architecture-pattern' == 'distibuted'
+for subsystem in sparQLWrapper.get_instances_of_type(MBA.Subsystem):
+    subsystem_name = sparQLWrapper.get_single_object_property(subsystem,MBA.name)
+
+    ## package "" Project
+    rdf_p = wrapper.add_named_instance(MBA.Package,subsystem_name);
+    
+    wrapper.add_reference(MBA.creates,rdf_p,subsystem)
+    
+    ## add assets
+
+    ## Component for each state machine
+    rdf_c_sm_lib = None
+    for reference in sparQLWrapper.get_out_references(subsystem,MBA.has):
+        type = sparQLWrapper.get_single_object_property(reference,RDF.type)
+        name = sparQLWrapper.get_single_object_property(reference,MBA.name)
+        if type == MBA.StateMachine:
+            ## Component statemachine Library <<lib>>
+            if not rdf_c_sm_lib:
+                rdf_c_sm_lib = wrapper.add_named_instance(MBA.Component,"StateMachine",unique_name=subsystem_name+"StateMachine");
+                wrapper.add_str_property(MBA.pattern,rdf_c_sm_lib,"lib")
+                wrapper.add_str_property(MBA.project_ref,rdf_c_sm_lib,"templates/python/statemachine")
+                wrapper.add_str_property(MBA.target_path,rdf_c_sm_lib,"statemachine")
+                wrapper.add_reference(MBA.contains,rdf_p,rdf_c_sm_lib)
+
+            #add component
+            rdf_c = wrapper.add_named_instance(MBA.Component,name+"StateMachine",unique_name=subsystem_name+name);
+            wrapper.add_str_property(MBA.pattern,rdf_c,"state machine")
+            wrapper.add_str_property(MBA.target_path,rdf_c,"statemachine")
+
+            wrapper.add_reference(MBA.contains,rdf_p,rdf_c)
+            wrapper.add_reference(MBA.use,rdf_c,rdf_c_sm_lib)
+
+            wrapper.add_reference(MBA.creates,rdf_c,reference)
+
+        else:
+            raise ValueError(f"Unknown type {type}")
+
+        
+
+    ## encode/decode Library
+    ## messages + struct info
+    message_structs = set()
+    rdf_c_msg_lib = None
+
+    for prop in [MBA.provides , MBA.requires]:
+        for interface in sparQLWrapper.get_out_references(subsystem,prop):
+            interface_name = sparQLWrapper.get_single_object_property(interface,MBA.name)
+            ## encode/decode library (once)
+            if not rdf_c_msg_lib:
+                rdf_c_msg_lib = wrapper.add_named_instance(MBA.Component,"Message",unique_name=subsystem_name+"Message");
+                wrapper.add_str_property(MBA.pattern,rdf_c_msg_lib,"lib")
+                wrapper.add_str_property(MBA.project_ref,rdf_c_msg_lib,"templates/python/message")
+                wrapper.add_str_property(MBA.target_path,rdf_c_msg_lib,"message")
+                wrapper.add_reference(MBA.contains,rdf_p,rdf_c_msg_lib)
+
+
+            # generate messages in target language , import tech. Library
+            for message in sparQLWrapper.get_out_references(interface,MBA.has):
+                #for message_struct in sparQLWrapper.get_out_references(message,MBA.structure):
+                name = sparQLWrapper.get_single_object_property(message,MBA.name)
+
+                ## Message Struct 
+                #add component (only once)
+                if message in message_structs: continue
+                message_structs.add(message)
+
+                rdf_c = wrapper.add_named_instance(MBA.Component,name,unique_name=subsystem_name+name);
+                wrapper.add_str_property(MBA.pattern,rdf_c,"message")
+                wrapper.add_str_property(MBA.target_path,rdf_c,"message")
+
+                wrapper.add_reference(MBA.contains,rdf_p,rdf_c)
+                wrapper.add_reference(MBA.use,rdf_c,rdf_c_msg_lib)
+
+                wrapper.add_reference(MBA.creates,rdf_c,message)
+
+       
+   
+
+
+
+    ## Component "Main"
+    ## Haupt-Programm muss implementiert werden
+    ## requirements.txt
+   
+    ## Dockerfile
+
+## Add SUMO Modul
+
+## Add Infrastruktur
+### docker daemon oder aws cluster oder marvis
+
+
+## Add Deployment
+## Pipelines
+
+
+graph.serialize(destination=f"simple-rich.ttl",format='turtle')
+

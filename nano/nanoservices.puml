@@ -34,6 +34,28 @@ xT9L4WCn609WrkFS_xJrhZEJklBC5_tnl3J6X-1CZQnKF2UP8WSOzabj3kWun5uAt8L7OdVf3YL4wlKT
 fpNCwVV0CACVUZ2hHpK48bRzbqW3TQ3rn49jS26mbm9_8IZ2muzKXmi1AdCWmJH909NoDy4VU5m64Yu3BIu27N0147K1H5q0KPSWf0xFoHO
 }
 
+sprite $state [48x48/16z] {
+tTH5WeL034NHu9RYxd-rtus7LORTPuZ6AlOVjGxUMgOYyP0Aov9uINd1y94LalFXbe4VqUUZyKJpZTNJO_qY1URXeRDy0q1XfyfkUaO5C9n4tWmpKDjT1r3Q
+WP6d_bkdoOuqysyTQnx_EbB0JvhJQKqx7ffNwcSrBMPWIem_DPqBQvCflQ_lA_s_ngSqFyrVQFsqlahxe_rJsd-T3w7pfVDtFB_nyz4VxTFr-UjPHkhBVQhd
+kuVj1PCszqSlUwgH-xAVUlQvxZzzNAsVxpWIZIUQRwoUlkoN5tlzallIx_KyD7B_3xi2
+}
+
+sprite $ellipse [48x48/16z] {
+xPG5hiL024NlMCTX_wjzxan9Y7qziGfk-5xyurBjavXfzfeST5oU_CRCJf6klA0whCcyGyO2D_ZAAD4xmFbK7f-a2q_FU6K-v9VYj46mqKhXOgOxB73zuXYl
+j4iXiCEbR0rFeXIN2X4FXd086Uvu9iid0XG2dtYaNCwvGkMSStvzIL19hoRfuapZ4ZBX1f-0paN6Ac-DnvgljPxMVjdceLldpJpFzdsnxwDzt-KzIS41BcZt
+n7wlxFVm4k_WDqPsjdl-lVZd2
+}
+
+sprite $swap [48x48/16z] xSkX5S0m4CDGipFp_jjs0VVoX1FXBrtUosB5qCCXS0WSSXnIClGnz4Dyvpt8jN2hjF2ejF3g5rwzVtdt2m_WfOqpFz1heDSqSHm41y51S13BkhpN1m
+
+sprite $package [48x48/16z] {
+xPM54iCm34EJbCdv_wyTMfthLHqU37HKtxs0GKtuIZKYpVrqEUM3fke-kXYoQYnkqx7BHdsyWRSATbZMRj6LdA4XXP3wyxVKDCqHjq3QcaPvpUf-ggdqvz4q
+bUYJosUPU0aiXcQPQ4GQfUK5zRP4fVqOpw7bqHyGY6taUNljIX0ZCSz3hMcSYl23wO-hxx36epzpzTjBDrPvFW-4f_F6UJ_FAMppgBVj1-Mv7pt__lWVIxNT
+3-97rcyXVZSyztk8ys2IUOt1oSsxzmF_7y9FDYQgiP_pCrUJdTeNtejNtoFlhnVUqw_H7W
+}
+
+sprite $view [48x48/16z] OnWHO1Jmmm5kDWACgXzLFxpJvwZwqVGv2aO1
+
 !define Subsystem(e_alias, e_label, e_techn) Entity(e_alias, e_label, e_techn, #D86613, cog, Subsystem)
 !define Interface(e_alias, e_label, e_techn) EntityInterface(e_alias, e_label, e_techn, #D86613,cog,Interface)
 
@@ -45,6 +67,9 @@ fpNCwVV0CACVUZ2hHpK48bRzbqW3TQ3rn49jS26mbm9_8IZ2muzKXmi1AdCWmJH909NoDy4VU5m64Yu3
 !define Property(e_alias, e_label, e_techn) Entity(e_alias, e_label, e_techn, #D86613, wrench, Property)
 !define Seq(e_alias, e_label, e_techn) Entity(e_alias, e_label, e_techn, #D86613, wrench, Sequence)
 
-!define StateMachine(e_alias, e_label, e_techn) Entity(e_alias, e_label, e_techn, #D86613, wrench, StateMachine)
-!define State(e_alias, e_label, e_techn) Entity(e_alias, e_label, e_techn, #D86613, wrench, State)
-!define Transition(e_alias, e_label, e_techn) Entity(e_alias, e_label, e_techn, #D86613, wrench, Transition)
+!define StateMachine(e_alias, e_label, e_techn) Entity(e_alias, e_label, e_techn, #D86613, state, StateMachine)
+!define State(e_alias, e_label, e_techn) Entity(e_alias, e_label, e_techn, #D86613, ellipse, State)
+!define Transition(e_alias, e_label, e_techn) Entity(e_alias, e_label, e_techn, #D86613, swap, Transition)
+
+!define Package(e_alias, e_label, e_techn) Entity(e_alias, e_label, e_techn, #D86613, package, Package)
+!define Component(e_alias, e_label, e_techn) Entity(e_alias, e_label, e_techn, #D86613, view, Component)

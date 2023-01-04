@@ -112,6 +112,10 @@ class SparQLWrapper:
 
         n = [r['o'] for r in self.graph.query(q,initBindings = {'s' : obj })]
         return n
+    def get_single_out_reference(self,obj,prop):
+        r = self.get_out_references(obj,prop)
+        if(len(r) != 1): raise ValueError(f"Not a single result {str(r)} for {obj}")
+        return r[0]
 
     def get_sequence(self,obj):
         q = """

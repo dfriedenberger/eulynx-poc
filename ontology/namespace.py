@@ -23,7 +23,9 @@ class MBA(DefinedNamespace):
     State: URIRef
     Transition: URIRef
 
-
+    # C3 Level
+    Package: URIRef
+    Component: URIRef
 
     # http://www.w3.org/1999/02/22-rdf-syntax-ns#Property
     name: URIRef #All Objects have names
@@ -49,5 +51,16 @@ class MBA(DefinedNamespace):
     source: URIRef
     target: URIRef
 
+    # C3 Level relations
+    contains: URIRef
+    creates: URIRef
+    use: URIRef
+
+    # C3 Level properties
+    pattern: URIRef
+
+    # C3 Level / Library properties
+    target_path: URIRef
+    project_ref: URIRef
 
 

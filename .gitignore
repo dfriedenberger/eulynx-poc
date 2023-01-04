@@ -1,3 +1,7 @@
 __pycache__
 stuff
 tmp
+*.puml
+*.ttl
+aspects.yaml
+plantuml*.jar

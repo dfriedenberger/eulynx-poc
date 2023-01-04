@@ -17,7 +17,7 @@ python enrichment.py
 
 ## Generate Code
 ```
-python generate.py --model eulynx-rich.ttl
+python generate.py --model eulynx-rich.ttl --path ../eulynx-interlocking
 ```
 
 ## Run
@@ -33,5 +33,15 @@ https://www.ldf.fi/service/rdf-grapher
 
 ## create eulynx.puml
 ```
-python rdf2puml.py --model eulynx.ttl
+python rdf2puml.py --model eulynx.ttl 
+```
+
+
+### Extend Nano puml
+
+https://materialdesignicons.com/
+
+Open and save with Paint (convert transparent to white)
+```
+java -jar ../plantuml-1.2022.14.jar -encodesprite 16z foo.png
 ```

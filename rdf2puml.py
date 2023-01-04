@@ -1,4 +1,4 @@
-from rdf2puml.rdf2puml import rdf2puml, statemachines2puml
+from rdf2puml.rdf2puml import rdf2puml, statemachines2puml, packages2puml
 from rdflib import Graph
 import argparse
 import os
@@ -31,3 +31,10 @@ for key,puml_sm in statemachines2puml(graph).items():
     output_file_sm = basename+"-sm-"+key.lower()+".puml"
     with open(output_file_sm, 'w') as f:
         f.write(txt_sm)
+
+puml_packages = packages2puml(graph)
+txt_packages = '\n'.join(puml_packages.puml)
+output_file_packages = basename+"-packages.puml"
+with open(output_file_packages, 'w') as f:
+    f.write(txt_packages)
+

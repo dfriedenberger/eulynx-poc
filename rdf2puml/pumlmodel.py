@@ -1,4 +1,4 @@
-from .nodegroup import NodeGroup
+from .group import Group
 
 def create_unique_id(o):
     s = str(o).split('#')[-1]
@@ -10,8 +10,10 @@ class PumlModel:
 
     def __init__(self,title):
         self.puml = []
-        self.nodes = NodeGroup(None)
+        self.nodes = Group(None)
+        self.components = Group(None)
         self.relations = []
+        self.component_uses = []
         self.puml.append("@startuml")
         self.puml.append("!include c4/C4.puml")
         self.puml.append("!include nano/nanoservices.puml")
@@ -55,10 +57,25 @@ class PumlModel:
         self.puml.append(f"{state} --> [*]")
 
 
+    def create_component(self,id,name,package,pattern):
+
+        component_obj = f'\tcomponent {id} <<{pattern}>> [{name}\n'
+        # component_obj += f'\t\t  \n' Add Multiline description
+        component_obj += '\t]'
+        self.components.append([package],component_obj)
+
+    def create_component_use(self,id,used_id):
+        puml_use = f'[{id}] --> [{used_id}] : use'
+        self.component_uses.append(puml_use)
+  
+
+
     def finish(self):
 
         self.puml.extend(self.nodes.to_puml_package())
         self.puml.extend(self.relations)
+        self.puml.extend(self.components.to_puml_package())
+        self.puml.extend(self.component_uses)
         self.puml.append("@enduml")
         return self.puml
 

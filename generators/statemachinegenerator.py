@@ -50,8 +50,8 @@ class StateMachineGenerator:
     def gen(self) -> str:
         template = ""
         #imports
-        template += "from statemachine.statemachine import StateMachine\n"
-        template += "from statemachine.state import State\n"
+        template += "from .statemachine import StateMachine\n"
+        template += "from .state import State\n"
         template += "\n"
 
         template += f"class {class_name(self.name)}:\n"

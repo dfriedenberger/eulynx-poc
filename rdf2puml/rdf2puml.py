@@ -13,6 +13,9 @@ def get_name(wrapper,instance):
 def get_type(wrapper,instance):
     return wrapper.get_type(instance).split("#")[1]
 
+def get_id(instance):
+    return str(instance).split("#")[1].replace("-","")
+
 def rdf2puml(graph : Graph) -> PumlModel:
 
     puml = PumlModel("Architecture")
@@ -75,3 +78,21 @@ def statemachines2puml(graph : Graph) -> List[PumlModel]:
 
     return puml_models
 
+def packages2puml(graph : Graph) -> PumlModel:
+    puml = PumlModel("Components")
+    wrapper = SparQLWrapper(graph)
+    
+    for package in wrapper.get_instances_of_type(MBA.Package):
+        package_name = get_name(wrapper,package)
+
+        for component in wrapper.get_out_references(package,MBA.contains):
+            component_name = get_name(wrapper,component)
+            pattern = wrapper.get_single_object_property(component,MBA.pattern)
+            puml.create_component(get_id(component),component_name,package_name,pattern)
+
+            #use
+            for used_component in wrapper.get_out_references(component,MBA.use):
+                puml.create_component_use(get_id(component),get_id(used_component))
+
+    puml.finish()
+    return puml 
