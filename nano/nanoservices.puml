@@ -69,6 +69,10 @@ sprite $view [48x48/16z] OnWHO1Jmmm5kDWACgXzLFxpJvwZwqVGv2aO1
 
 !define StateMachine(e_alias, e_label, e_techn) Entity(e_alias, e_label, e_techn, #D86613, state, StateMachine)
 !define State(e_alias, e_label, e_techn) Entity(e_alias, e_label, e_techn, #D86613, ellipse, State)
+!define InitialState(e_alias, e_label, e_techn) Entity(e_alias, e_label, e_techn, #D86613, ellipse, State)
+!define FinalState(e_alias, e_label, e_techn) Entity(e_alias, e_label, e_techn, #D86613, ellipse, State)
+!define Junction(e_alias, e_label, e_techn) Entity(e_alias, e_label, e_techn, #D86613, ellipse, State)
+
 !define Transition(e_alias, e_label, e_techn) Entity(e_alias, e_label, e_techn, #D86613, swap, Transition)
 
 !define Package(e_alias, e_label, e_techn) Entity(e_alias, e_label, e_techn, #D86613, package, Package)

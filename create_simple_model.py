@@ -218,19 +218,15 @@ sparQLWrapper = SparQLWrapper(graph)
 ## Add Projects, add dependencies, UML Package structure, Komponenten-Diagramm
 
 ## if 'architecture-pattern' == 'distibuted'
-for subsystem in sparQLWrapper.get_instances_of_type(MBA.Subsystem):
-    subsystem_name = sparQLWrapper.get_single_object_property(subsystem,MBA.name)
-
-    ## package "" Project
-    rdf_p = wrapper.add_named_instance(MBA.Package,subsystem_name);
+for p_subsystem in sparQLWrapper.get_instances_of_type(MBA.Subsystem):
+    subsystem_name = sparQLWrapper.get_single_object_property(p_subsystem,MBA.name)
     
-    wrapper.add_reference(MBA.creates,rdf_p,subsystem)
     
     ## add assets
 
     ## Component for each state machine
     rdf_c_sm_lib = None
-    for reference in sparQLWrapper.get_out_references(subsystem,MBA.has):
+    for reference in sparQLWrapper.get_out_references(p_subsystem,MBA.has):
         type = sparQLWrapper.get_single_object_property(reference,RDF.type)
         name = sparQLWrapper.get_single_object_property(reference,MBA.name)
         if type == MBA.StateMachine:
@@ -240,14 +236,14 @@ for subsystem in sparQLWrapper.get_instances_of_type(MBA.Subsystem):
                 wrapper.add_str_property(MBA.pattern,rdf_c_sm_lib,"lib")
                 wrapper.add_str_property(MBA.project_ref,rdf_c_sm_lib,"templates/python/statemachine")
                 wrapper.add_str_property(MBA.target_path,rdf_c_sm_lib,"statemachine")
-                wrapper.add_reference(MBA.contains,rdf_p,rdf_c_sm_lib)
+                wrapper.add_reference(MBA.contains,p_subsystem,rdf_c_sm_lib)
 
             #add component
             rdf_c = wrapper.add_named_instance(MBA.Component,name+"StateMachine",unique_name=subsystem_name+name);
             wrapper.add_str_property(MBA.pattern,rdf_c,"state machine")
             wrapper.add_str_property(MBA.target_path,rdf_c,"statemachine")
 
-            wrapper.add_reference(MBA.contains,rdf_p,rdf_c)
+            wrapper.add_reference(MBA.contains,p_subsystem,rdf_c)
             wrapper.add_reference(MBA.use,rdf_c,rdf_c_sm_lib)
 
             wrapper.add_reference(MBA.creates,rdf_c,reference)
@@ -263,7 +259,7 @@ for subsystem in sparQLWrapper.get_instances_of_type(MBA.Subsystem):
     rdf_c_msg_lib = None
 
     for prop in [MBA.provides , MBA.requires]:
-        for interface in sparQLWrapper.get_out_references(subsystem,prop):
+        for interface in sparQLWrapper.get_out_references(p_subsystem,prop):
             interface_name = sparQLWrapper.get_single_object_property(interface,MBA.name)
             ## encode/decode library (once)
             if not rdf_c_msg_lib:
@@ -271,7 +267,7 @@ for subsystem in sparQLWrapper.get_instances_of_type(MBA.Subsystem):
                 wrapper.add_str_property(MBA.pattern,rdf_c_msg_lib,"lib")
                 wrapper.add_str_property(MBA.project_ref,rdf_c_msg_lib,"templates/python/message")
                 wrapper.add_str_property(MBA.target_path,rdf_c_msg_lib,"message")
-                wrapper.add_reference(MBA.contains,rdf_p,rdf_c_msg_lib)
+                wrapper.add_reference(MBA.contains,p_subsystem,rdf_c_msg_lib)
 
 
             # generate messages in target language , import tech. Library
@@ -288,7 +284,7 @@ for subsystem in sparQLWrapper.get_instances_of_type(MBA.Subsystem):
                 wrapper.add_str_property(MBA.pattern,rdf_c,"message")
                 wrapper.add_str_property(MBA.target_path,rdf_c,"message")
 
-                wrapper.add_reference(MBA.contains,rdf_p,rdf_c)
+                wrapper.add_reference(MBA.contains,p_subsystem,rdf_c)
                 wrapper.add_reference(MBA.use,rdf_c,rdf_c_msg_lib)
 
                 wrapper.add_reference(MBA.creates,rdf_c,message)
